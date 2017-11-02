@@ -1,17 +1,9 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package e.cafe;
 
 import java.util.ArrayList;
 import java.util.Date;
 
-/**
- *
- * @author UZAIR
- */
+//delivery order class
 public class delivery_order extends order {
     private String order_address;
 

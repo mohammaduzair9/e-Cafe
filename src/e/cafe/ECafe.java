@@ -1,19 +1,12 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package e.cafe;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.Writer;
+import java.io.*;
 import static java.lang.System.exit;
 import java.sql.*;
 import java.util.*;
 import java.util.Date;
 
+//E-Cafe Class
 public class ECafe {
 
     private static menu cafe_menu;
@@ -22,6 +15,7 @@ public class ECafe {
     private Date cafe_close_time;
     private int cooks;
     
+    //constructors
     public ECafe(){
         cafe_menu=null;
         cafe_orders=null;
@@ -38,6 +32,7 @@ public class ECafe {
         cooks=cafecooks;
     }
     
+    //getters
     static public menu get_menu(){
         return cafe_menu;
     }
@@ -54,6 +49,7 @@ public class ECafe {
         cafe_orders.add(newOrder);
     } 
     
+    //This function displays the menu to user
     public void displayMenu(){
         int item_num=0;
         ArrayList<item> appetizerList=this.cafe_menu.get_appetizers();
@@ -95,6 +91,7 @@ public class ECafe {
         
     }
     
+    //Checks pickup time is valid or not
     public boolean PickUptimeCheck(Date orderTime) {
         if(orderTime.getHours()>= cafe_open_time.getHours() && orderTime.getHours()<cafe_close_time.getHours()){
             return true;
@@ -102,20 +99,22 @@ public class ECafe {
         else return false;
     }
     
+    //This is the main class
     public static void main(String[] args) {
     
         ArrayList<item> cafeItems = new ArrayList<>();
         ArrayList<order> cafeOrders = new ArrayList<>();
         Scanner inp = new Scanner(System.in);
         
-        //making database connection
-        try{  
+        try{ 
+            
+            //making database connection
             Class.forName("com.mysql.jdbc.Driver");
             Connection con=DriverManager.getConnection( "jdbc:mysql://localhost/ecafe","uzair","seecs");  
             Statement stmt=con.createStatement();  
             ResultSet rs=stmt.executeQuery("select * from item");  
             while(rs.next()){
-                //items from database
+                //menu items from database
                 cafeItems.add(new item(rs.getInt(1),rs.getString(2),rs.getString(3),rs.getInt(4)));
             }
         
@@ -128,19 +127,23 @@ public class ECafe {
             closeTime.setHours(22);
             closeTime.setMinutes(0);
         
+            //The main cafe object is now created to handle all things
             ECafe myCafe = new ECafe(cafeMenu, cafeOrders, openTime, closeTime, 4);
             myCafe.displayMenu();
             
+            //=================After displaying menu===========
             String orderType = null;
             pickup_order myPickOrder = null;
             delivery_order myDelOrder = null;
             Date myDate=new Date();
         
             while(true){
+                //getting user input
                 System.out.println("Do you want to place a pickup order or delivery? (P or D)");
                 System.out.println("Q to get the last month summary (any other to exit)");
                 orderType=inp.next();
-        
+
+                //if a pickup order
                 if(orderType.equals("P")){
                     myPickOrder=new pickup_order();
                     System.out.println("Enter time for you order (hours and mins seperated by a space)");
@@ -155,6 +158,7 @@ public class ECafe {
                     }
                 }
             
+                //if a delivery order
                 else if(orderType.equals("D")){
                     if(myDate.getHours()< myCafe.get_open() && myDate.getHours()>=myCafe.get_close()){
                         System.out.println("Shop is closed now, cafe Timings are 11 AM to 10 PM");
@@ -166,6 +170,8 @@ public class ECafe {
                         myDelOrder.set_address(inp.next()); 
                     }
                 }
+                
+                //if print report
                 else if(orderType.equals("Q")){
                     StringBuilder sb = new StringBuilder();
                     sb.append(String.format("%s %50s%n", " ", "Monthly Report"));
@@ -201,13 +207,14 @@ public class ECafe {
                         
                     }
                     
+                    //writing report to file
                     Writer Candidateoutput = null;
                     File Candidatefile = new File("summary.txt");
                     Candidateoutput = new BufferedWriter(new FileWriter(Candidatefile));
                     Candidateoutput.write(sb.toString());
                     Candidateoutput.close();
                     System.out.println(sb.toString());
-                    
+                    continue;
                 }
                 else{
                     System.out.println("Thankyou for visiting us");
@@ -223,6 +230,7 @@ public class ECafe {
                         break;
                     }
                     else{
+                        //adding item to order
                         if(orderType.equals("P")){
                             myPickOrder.add_order_item(myCafe.get_menu().get_menu_items().get(opt-1));
                             System.out.print("\n Your Bill :");
@@ -236,6 +244,7 @@ public class ECafe {
                     }
                 }
                 
+                //inserting order into database
                 if(orderType.equals("P")){
                     String Order_Query = "INSERT INTO `order_list`(`order_id`, `user_id`, `order_type`, `order_bill`, `order_time`) VALUES (NULL,?,?,?,?)";
                     PreparedStatement order_stmt = con.prepareStatement(Order_Query,Statement.RETURN_GENERATED_KEYS);

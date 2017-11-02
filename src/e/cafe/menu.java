@@ -1,16 +1,8 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package e.cafe;
 
 import java.util.ArrayList;
 
-/**
- *
- * @author UZAIR
- */
+//menu class
 public class menu {
     private ArrayList<item> menu_items;
     private String menu_name;

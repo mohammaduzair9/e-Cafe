@@ -1,17 +1,9 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package e.cafe;
 
 import java.util.ArrayList;
 import java.util.Date;
 
-/**
- *
- * @author UZAIR
- */
+//order class
 public class order {
     public ArrayList<item> order_items;
     private int order_bill;
@@ -31,6 +23,7 @@ public class order {
         calc_order_bill();
     }
     
+    //calculating order bill
     public int calc_order_bill(){
         int bill=0;
         for(int i=0;i<order_items.size();i++){
