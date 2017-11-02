@@ -201,6 +201,11 @@ public class ECafe {
                         
                     }
                     
+                    Writer Candidateoutput = null;
+                    File Candidatefile = new File("summary.txt");
+                    Candidateoutput = new BufferedWriter(new FileWriter(Candidatefile));
+                    Candidateoutput.write(sb.toString());
+                    Candidateoutput.close();
                     System.out.println(sb.toString());
                     
                 }
