@@ -5,10 +5,14 @@
  */
 package e.cafe;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.Writer;
 import static java.lang.System.exit;
-import java.util.ArrayList;
+import java.sql.*;
+import java.util.*;
 import java.util.Date;
-import java.util.Scanner;
 
 public class ECafe {
 
@@ -96,127 +100,153 @@ public class ECafe {
             return true;
         }
         else return false;
-        
-        
     }
     
     public static void main(String[] args) {
     
+        ArrayList<item> cafeItems = new ArrayList<>();
+        ArrayList<order> cafeOrders = new ArrayList<>();
         Scanner inp = new Scanner(System.in);
         
-        ArrayList<item> cafeItems = new ArrayList<>();
-        cafeItems.add(new item("Dips and Chicks","appetizer",300));
-        cafeItems.add(new item("Chicken Fries","appetizer",350));
-        cafeItems.add(new item("Hommus","appetizer",500));
-        cafeItems.add(new item("Chicken Wings","appetizer",600));
-        
-        cafeItems.add(new item("Egg Drop Soup","soup",450));
-        cafeItems.add(new item("Vegetable Soup","soup",650));
-        cafeItems.add(new item("Chicken Handi","mainCourse",1050));
-        cafeItems.add(new item("Chicken Karahi","mainCourse",850));
-        cafeItems.add(new item("Moroccon Steak","mainCourse",1150));
-        cafeItems.add(new item("Chicken Burger","mainCourse",550));
-        cafeItems.add(new item("Malai Boti","mainCourse",950));
-        cafeItems.add(new item("Fried Fish","mainCourse",750));
-        cafeItems.add(new item("Salad","sideDish",200));
-        cafeItems.add(new item("Raita","sideDish",100));
-        cafeItems.add(new item("Bacon","sideDish",150));
-        
-        ArrayList<order> cafeOrders = new ArrayList<>();
-        
-        menu cafeMenu = new menu(cafeItems, "General");
-        
-        Date openTime = new Date();
-        openTime.setHours(11);
-        openTime.setMinutes(0);
-        
-        Date closeTime = new Date();
-        closeTime.setHours(22);
-        closeTime.setMinutes(0);
-        
-        ECafe myCafe = new ECafe(cafeMenu, cafeOrders, openTime, closeTime, 4);
-        myCafe.displayMenu();
-        
-        String orderType = null;
-        pickup_order myPickOrder = null;
-        delivery_order myDelOrder = null;
-        
-        while(true){
-            System.out.println("Do you want to place a pickup order or delivery? (P or D) (any other to exit)");
-            orderType=inp.next();
-        
-            if(orderType.equals("P")){
-                myPickOrder=new pickup_order();
-                System.out.println("Enter time for you order (hours and mins seperated by a space)");
-                Date myDate=new Date();
-                myDate.setHours(inp.nextInt());
-                myDate.setMinutes(inp.nextInt());
-                if(myCafe.PickUptimeCheck(myDate)){
-                    myPickOrder.set_time(myDate);
-                }
-                else{
-                    System.out.println("The Cafe is open between 11 AM and 10 PM");
-                    continue;
-                }
+        //making database connection
+        try{  
+            Class.forName("com.mysql.jdbc.Driver");
+            Connection con=DriverManager.getConnection( "jdbc:mysql://localhost/ecafe","uzair","seecs");  
+            Statement stmt=con.createStatement();  
+            ResultSet rs=stmt.executeQuery("select * from item");  
+            while(rs.next()){
+                //items from database
+                cafeItems.add(new item(rs.getInt(1),rs.getString(2),rs.getString(3),rs.getInt(4)));
             }
+        
+            menu cafeMenu = new menu(cafeItems, "General");
+            Date openTime = new Date();
+            openTime.setHours(11);
+            openTime.setMinutes(0);
+        
+            Date closeTime = new Date();
+            closeTime.setHours(22);
+            closeTime.setMinutes(0);
+        
+            ECafe myCafe = new ECafe(cafeMenu, cafeOrders, openTime, closeTime, 4);
+            myCafe.displayMenu();
             
-            else if(orderType.equals("D")){
-                Date myDate = new Date();
-                
-                if(myDate.getHours()< myCafe.get_open() && myDate.getHours()>=myCafe.get_close()){
-                    System.out.println("Shop is closed now, cafe Timings are 11 AM to 10 PM");
-                    continue;
-                }
-                else{
-                    myDelOrder=new delivery_order();
-                    System.out.println("Enter your address");
-                    myDelOrder.set_address(inp.next()); 
-                }
-            }
-            else{
-                System.out.println("Thankyou for visiting us");
-                break;
-            }
+            String orderType = null;
+            pickup_order myPickOrder = null;
+            delivery_order myDelOrder = null;
+            Date myDate=new Date();
         
-            int opt;
             while(true){
-                System.out.println("Enter item number to add to your order (-1 for placing order)");
-                opt =  inp.nextInt();
+                System.out.println("Do you want to place a pickup order or delivery? (P or D)");
+                System.out.println("Q to get the last month summary (any other to exit)");
+                orderType=inp.next();
+        
+                if(orderType.equals("P")){
+                    myPickOrder=new pickup_order();
+                    System.out.println("Enter time for you order (hours and mins seperated by a space)");
+                    myDate.setHours(inp.nextInt());
+                    myDate.setMinutes(inp.nextInt());
+                    if(myCafe.PickUptimeCheck(myDate)){
+                        myPickOrder.set_time(myDate);
+                    }
+                    else{
+                        System.out.println("The Cafe is open between 11 AM and 10 PM");
+                        continue;
+                    }
+                }
             
-                if(opt==-1){
+                else if(orderType.equals("D")){
+                    if(myDate.getHours()< myCafe.get_open() && myDate.getHours()>=myCafe.get_close()){
+                        System.out.println("Shop is closed now, cafe Timings are 11 AM to 10 PM");
+                        continue;
+                    }
+                    else{
+                        myDelOrder=new delivery_order();
+                        System.out.println("Enter your address");
+                        myDelOrder.set_address(inp.next()); 
+                    }
+                }
+                else{
+                    System.out.println("Thankyou for visiting us");
                     break;
                 }
-                else{
-                    if(orderType.equals("P")){
-                        myPickOrder.add_order_item(myCafe.get_menu().get_menu_items().get(opt-1));
-                        System.out.print("\n Your Bill :");
-                        System.out.print(myPickOrder.get_order_bill()+"\n");
+        
+                int opt;
+                while(true){
+                    System.out.println("Enter item number to add to your order (-1 for placing order)");
+                    opt =  inp.nextInt();
+            
+                    if(opt==-1){
+                        break;
                     }
-                    else if(orderType.equals("D")){
-                        myDelOrder.add_order_item(myCafe.get_menu().get_menu_items().get(opt-1));
-                        System.out.print("\n Your Bill :");
-                        System.out.print(myDelOrder.get_order_bill()+"\n");
+                    else{
+                        if(orderType.equals("P")){
+                            myPickOrder.add_order_item(myCafe.get_menu().get_menu_items().get(opt-1));
+                            System.out.print("\n Your Bill :");
+                            System.out.print(myPickOrder.get_order_bill()+"\n");
+                        }
+                        else if(orderType.equals("D")){
+                            myDelOrder.add_order_item(myCafe.get_menu().get_menu_items().get(opt-1));
+                            System.out.print("\n Your Bill :");
+                            System.out.print(myDelOrder.get_order_bill()+"\n");
+                        }
                     }
                 }
-            }
+                
+                if(orderType.equals("P")){
+                    String Order_Query = "INSERT INTO `order_list`(`order_id`, `user_id`, `order_type`, `order_bill`, `order_time`) VALUES (NULL,?,?,?,?)";
+                    PreparedStatement order_stmt = con.prepareStatement(Order_Query,Statement.RETURN_GENERATED_KEYS);
+                    order_stmt.setInt(1, 2);
+                    order_stmt.setString(2, orderType);
+                    order_stmt.setInt(3, myPickOrder.get_order_bill());
+                    order_stmt.setDate(4, new java.sql.Date(myDate.getDate()));
+                    
+                    int affectedRows = order_stmt.executeUpdate();
+                    ResultSet keys = order_stmt.getGeneratedKeys();
+                    keys.next();
+                    int order_id = keys.getInt(1);
+                
+                    List<item> items = myPickOrder.order_items;
+                    for(int i=0;i<items.size();i++){
+                        String Order_Item_Query = "INSERT INTO `order_items`(`order_id`, `item_id`) VALUES ("+order_id+","+items.get(i).get_item_id()+")";
+                        Statement item_stmt=con.createStatement();  
+                        boolean res = item_stmt.execute(Order_Item_Query); 
+                    
+                    }
+                    myCafe.add_order(myPickOrder);
+                }
+                else if(orderType.equals("D")){
+                    String Order_Query = "INSERT INTO `order_list`(`order_id`, `user_id`, `order_type`, `order_bill`, `order_time`) VALUES (NULL,?,?,?,?)";
+                    PreparedStatement order_stmt = con.prepareStatement(Order_Query,Statement.RETURN_GENERATED_KEYS);
+                    order_stmt.setInt(1, 2);
+                    order_stmt.setString(2, orderType);
+                    order_stmt.setInt(3, myDelOrder.get_order_bill());
+                    order_stmt.setDate(4, new java.sql.Date(myDate.getDate()));
+                    
+                    int affectedRows = order_stmt.executeUpdate();
+                    ResultSet keys = order_stmt.getGeneratedKeys();
+                    keys.next();
+                    int order_id = keys.getInt(1);
+                
+                    List<item> items = myDelOrder.order_items;
+                    for(int i=0;i<items.size();i++){
+                        String Order_Item_Query = "INSERT INTO `order_items`(`order_id`, `item_id`) VALUES ("+order_id+","+items.get(i).get_item_id()+")";
+                        Statement item_stmt=con.createStatement();  
+                        boolean res = item_stmt.execute(Order_Item_Query); 
+                    
+                    }
+                    myCafe.add_order(myDelOrder);
+                }
             
-            if(orderType=="P"){
-                myCafe.add_order(myPickOrder);
+            
+                con.close();  
             }
-            else if(orderType=="D"){
-                myCafe.add_order(myDelOrder);
-            }
-        
-        
         }
-        
-        
-        
-        
-            
-        
-        
-    }   
+        catch(Exception e){ 
+            System.out.println(e);
+        }
+    }
+}   
 
     
-}
+

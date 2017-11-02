@@ -41,7 +41,7 @@ public class menu {
         
         ArrayList<item> appetizers=new ArrayList<>();
         for(int i=0;i<menu_items.size();i++){
-            if(menu_items.get(i).get_item_type()=="appetizer"){
+            if(menu_items.get(i).get_item_type().equals("appetizer")){
                 appetizers.add(menu_items.get(i));
             }
         }
@@ -52,7 +52,7 @@ public class menu {
         
         ArrayList<item> soups=new ArrayList<>();
         for(int i=0;i<menu_items.size();i++){
-            if(menu_items.get(i).get_item_type()=="soup"){
+            if(menu_items.get(i).get_item_type().equals("soup")){
                 soups.add(menu_items.get(i));
             }
         }
@@ -63,7 +63,7 @@ public class menu {
         
         ArrayList<item> main_course_dishes=new ArrayList<>();
         for(int i=0;i<menu_items.size();i++){
-            if(menu_items.get(i).get_item_type()=="mainCourse"){
+            if(menu_items.get(i).get_item_type().equals("mainCourse")){
                 main_course_dishes.add(menu_items.get(i));
             }
         }
@@ -74,7 +74,7 @@ public class menu {
         
         ArrayList<item> side_dishes=new ArrayList<>();
         for(int i=0;i<menu_items.size();i++){
-            if(menu_items.get(i).get_item_type()=="sideDish"){
+            if(menu_items.get(i).get_item_type().equals("sideDish")){
                 side_dishes.add(menu_items.get(i));
             }
         }
