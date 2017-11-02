@@ -166,6 +166,44 @@ public class ECafe {
                         myDelOrder.set_address(inp.next()); 
                     }
                 }
+                else if(orderType.equals("Q")){
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(String.format("%s %50s%n", " ", "Monthly Report"));
+                    sb.append(String.format("%s %48s%n", " ", "E - Cafe"));
+                    sb.append(String.format("%s %n", " "));
+                                
+                    Statement sum_stmt = con.createStatement();  
+                    ResultSet order_summary = sum_stmt.executeQuery("select * from order_list");  
+                    while(order_summary.next()){
+                        Statement user_stmt = con.createStatement();  
+                        ResultSet user_name = user_stmt.executeQuery("select * from users where user_id ="+order_summary.getInt(2));  
+                        user_name.next();
+                        sb.append(String.format("%s %-20s %-20s%n%n", " ", "Order By : ",user_name.getString(2)));
+                        sb.append(String.format("%s %-20s %-20s%n", " ", "Time : ",order_summary.getString(5)));
+                        sb.append(String.format("%s %-20s%n%n", " ", "-------------------------------------------"));
+                        sb.append(String.format("%s %-20s %-20s%n", " ", "Items", "Price"));
+                        sb.append(String.format("%s %-20s %-20s%n", " ", "--------------", "--------------"));
+                                
+                        int order_id = order_summary.getInt(1);
+                        Statement order_stmt = con.createStatement();  
+                        ResultSet items_id = order_stmt.executeQuery("select item_id from order_items where order_id="+ order_id);        
+                        while(items_id.next()){
+                            int id = items_id.getInt(1);
+                            Statement item_stmt = con.createStatement();  
+                            ResultSet items = item_stmt.executeQuery("select * from item where item_id="+ id);        
+                            while(items.next()){
+                                sb.append(String.format("%s %-20s %-20s%n", " ", items.getString(2) , items.getInt(4)));
+                            }
+                        }
+                        sb.append(String.format("%s %-20s %-20s%n", " ", "==============", "=============="));
+                        sb.append(String.format("%s %-20s %-20s%n%n", " ", "Total", order_summary.getInt(4)));
+                        sb.append(String.format("%s %-20s %-20s%n%n", " ", "==============", "=============="));
+                        
+                    }
+                    
+                    System.out.println(sb.toString());
+                    
+                }
                 else{
                     System.out.println("Thankyou for visiting us");
                     break;
