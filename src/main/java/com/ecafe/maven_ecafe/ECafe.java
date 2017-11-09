@@ -1,4 +1,4 @@
-package e.cafe;
+package com.ecafe.maven_ecafe;
 
 import java.io.*;
 import static java.lang.System.exit;
@@ -328,4 +328,3 @@ public class ECafe {
 }   
 
     
-

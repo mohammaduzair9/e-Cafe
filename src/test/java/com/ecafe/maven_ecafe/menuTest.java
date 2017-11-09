@@ -1,4 +1,4 @@
-package e.cafe;
+package com.ecafe.maven_ecafe;
 
 import java.util.ArrayList;
 import org.junit.*;
