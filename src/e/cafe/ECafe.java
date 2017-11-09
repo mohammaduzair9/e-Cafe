@@ -181,22 +181,40 @@ public class ECafe {
                     Statement sum_stmt = con.createStatement();  
                     ResultSet order_summary = sum_stmt.executeQuery("select * from order_list");  
                     while(order_summary.next()){
-                        Statement user_stmt = con.createStatement();  
-                        ResultSet user_name = user_stmt.executeQuery("select * from users where user_id ="+order_summary.getInt(2));  
+                        
+                        //prepared statement to get user name of the current order
+                        String User_Query = "select * from users where user_id = ?";
+                        PreparedStatement user_stmt = con.prepareStatement(User_Query);
+                        user_stmt.setInt(1, order_summary.getInt(2));
+                    
+                        ResultSet user_name = user_stmt.executeQuery(); 
+                        
                         user_name.next();
                         sb.append(String.format("%s %-20s %-20s%n%n", " ", "Order By : ",user_name.getString(2)));
                         sb.append(String.format("%s %-20s %-20s%n", " ", "Time : ",order_summary.getString(5)));
                         sb.append(String.format("%s %-20s%n%n", " ", "-------------------------------------------"));
                         sb.append(String.format("%s %-20s %-20s%n", " ", "Items", "Price"));
                         sb.append(String.format("%s %-20s %-20s%n", " ", "--------------", "--------------"));
-                                
+                           
+                        //prepared statement for detting items in an order
                         int order_id = order_summary.getInt(1);
-                        Statement order_stmt = con.createStatement();  
-                        ResultSet items_id = order_stmt.executeQuery("select item_id from order_items where order_id="+ order_id);        
+                        String Item_Query = "select item_id from order_items where order_id = ?";
+                        PreparedStatement order_stmt = con.prepareStatement(Item_Query);
+                        order_stmt.setInt(1, order_id);
+                    
+                        ResultSet items_id = user_stmt.executeQuery(); 
+                        
                         while(items_id.next()){
+                            
+                            //prepared statement for getting item details
                             int id = items_id.getInt(1);
-                            Statement item_stmt = con.createStatement();  
-                            ResultSet items = item_stmt.executeQuery("select * from item where item_id="+ id);        
+                            
+                            String Items_Query = "select * from item where item_id = ?";
+                            PreparedStatement item_stmt = con.prepareStatement(Items_Query);
+                            item_stmt.setInt(1, id);
+                    
+                            ResultSet items = item_stmt.executeQuery(); 
+                                
                             while(items.next()){
                                 sb.append(String.format("%s %-20s %-20s%n", " ", items.getString(2) , items.getInt(4)));
                             }
@@ -246,6 +264,7 @@ public class ECafe {
                 
                 //inserting order into database
                 if(orderType.equals("P")){
+                    //prepared statement to add orders to the database
                     String Order_Query = "INSERT INTO `order_list`(`order_id`, `user_id`, `order_type`, `order_bill`, `order_time`) VALUES (NULL,?,?,?,?)";
                     PreparedStatement order_stmt = con.prepareStatement(Order_Query,Statement.RETURN_GENERATED_KEYS);
                     order_stmt.setInt(1, 2);
@@ -260,9 +279,13 @@ public class ECafe {
                 
                     List<item> items = myPickOrder.order_items;
                     for(int i=0;i<items.size();i++){
-                        String Order_Item_Query = "INSERT INTO `order_items`(`order_id`, `item_id`) VALUES ("+order_id+","+items.get(i).get_item_id()+")";
-                        Statement item_stmt=con.createStatement();  
-                        boolean res = item_stmt.execute(Order_Item_Query); 
+                        
+                        //callable statement to call procedure to insert items
+                        String Order_Item_Query = "{call Insert_Items(?,?)}"; 
+                        CallableStatement insert_item_cstmt = con.prepareCall(Order_Item_Query);  
+                        insert_item_cstmt.setInt(1, order_id);
+                        insert_item_cstmt.setInt(2, items.get(i).get_item_id());
+                        insert_item_cstmt.executeQuery(); 
                     
                     }
                     myCafe.add_order(myPickOrder);
@@ -282,9 +305,13 @@ public class ECafe {
                 
                     List<item> items = myDelOrder.order_items;
                     for(int i=0;i<items.size();i++){
-                        String Order_Item_Query = "INSERT INTO `order_items`(`order_id`, `item_id`) VALUES ("+order_id+","+items.get(i).get_item_id()+")";
-                        Statement item_stmt=con.createStatement();  
-                        boolean res = item_stmt.execute(Order_Item_Query); 
+                        
+                        //callable statement to call procedure to insert items
+                        String Order_Item_Query = "{call Insert_Items(?,?)}"; 
+                        CallableStatement insert_item_cstmt = con.prepareCall(Order_Item_Query);  
+                        insert_item_cstmt.setInt(1, order_id);
+                        insert_item_cstmt.setInt(2, items.get(i).get_item_id());
+                        insert_item_cstmt.executeQuery(); 
                     
                     }
                     myCafe.add_order(myDelOrder);
